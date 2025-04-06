@@ -23,11 +23,16 @@ module.exports = {
   delete: _delete,
 };
 
+<<<<<<< HEAD
 async function authenticate({ email, password }) {
+=======
+async function authenticate({ email, password, ipAddress }) {
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
   const account = await db.Account.scope("withHash").findOne({
     where: { email },
   });
 
+<<<<<<< HEAD
   if (!account || !account.isVerified || !bcrypt.compareSync(password, account.passwordHash)) {
     throw "Email or password is incorrect";
   }
@@ -42,6 +47,30 @@ async function authenticate({ email, password }) {
   };
 }
 
+=======
+  if (
+    !account ||
+    !account.isVerified ||
+    !bcrypt.compareSync(password, account.passwordHash)
+  ) {
+    throw "Email or password is incorrect";
+  }
+
+  // authentication successful so generate jwt and refresh tokens
+  const jwtToken = generateJwtToken(account);
+  const refreshToken = generateRefreshToken(account, ipAddress);
+
+  // save refresh token
+  await refreshToken.save();
+
+  // return basic details and tokens
+  return {
+    ...basicDetails(account),
+    jwtToken,
+    refreshToken: refreshToken.token,
+  };
+}
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
 async function refreshToken({ token, ipAddress }) {
   const refreshToken = await getRefreshToken(token);
   const account = await refreshToken.getAccount();
@@ -73,27 +102,53 @@ async function revokeToken({ token, ipAddress }) {
   refreshToken.revokedByIp = ipAddress;
   await refreshToken.save();
 }
+<<<<<<< HEAD
 
 async function register(params, origin) {
   // validate
   if (await db.Account.findOne({ where: { email: params.email } })) {
+=======
+async function register(params, origin) {
+  // validate
+  if (await db.Account.findOne({ where: { email: params.email } })) {
+    // send already registered error in email to prevent account enumeration
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
     throw 'Email "' + params.email + '" is already registered';
   }
 
   // create account object
   const account = new db.Account(params);
 
+<<<<<<< HEAD
   // create verification token
   account.verificationToken = randomTokenString();
+=======
+  // first registered account is an admin
+  const isFirstAccount = (await db.Account.count()) === 0;
+  account.role = isFirstAccount ? Role.Admin : Role.User;
+  
+  // create verification token
+  account.verificationToken = randomTokenString();
+  console.log('Generated verification token:', account.verificationToken);
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
 
   // hash password
   account.passwordHash = await hash(params.password);
 
   // save account
   await account.save();
+<<<<<<< HEAD
 
   // send verification email
   await sendVerificationEmail(account, origin);
+=======
+  console.log('Account saved successfully');
+
+  // send verification email
+  console.log('Attempting to send verification email...');
+  await sendVerificationEmail(account, origin);
+  console.log('Verification email sent successfully');
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
 
   return { message: "Registration successful, please check your email for verification instructions" };
 }
@@ -124,7 +179,10 @@ async function forgotPassword({ email }, origin) {
   // send email
   await sendPasswordResetEmail(account, origin);
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
 async function validateResetToken({ token }) {
   const account = await db.Account.findOne({
     where: {
@@ -221,11 +279,22 @@ async function getRefreshToken(token) {
 }
 
 async function hash(password) {
+<<<<<<< HEAD
   return bcrypt.hashSync(password, 10);
 }
 
 function generateJwtToken(account) {
   return jwt.sign({ sub: account.id, email: account.email }, config.secret, { expiresIn: "7d" });
+=======
+  return await bcrypt.hash(password, 10);
+}
+
+function generateJwtToken(account) {
+  // create a jwt token containing the account id that expires in 15 minutes
+  return jwt.sign({ sub: account.id, id: account.id }, config.secret, {
+    expiresIn: "15m",
+  });
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
 }
 
 function generateRefreshToken(account, ipAddress) {
@@ -243,11 +312,40 @@ function randomTokenString() {
 }
 
 function basicDetails(account) {
+<<<<<<< HEAD
   const { id, email, firstName, lastName, isVerified } = account;
   return { id, email, firstName, lastName, isVerified };
 }
 
 async function sendVerificationEmail(account, origin) {
+=======
+  const {
+    id,
+    title,
+    firstName,
+    lastName,
+    email,
+    role,
+    created,
+    updated,
+    isVerified,
+  } = account;
+  return {
+    id,
+    title,
+    firstName,
+    lastName,
+    email,
+    role,
+    created,
+    updated,
+    isVerified,
+  };
+}
+
+async function sendVerificationEmail(account, origin) {
+  console.log('Preparing verification email for:', account.email);
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
   let message;
   if (origin) {
     const verifyUrl = `${origin}/account/verify-email?token=${account.verificationToken}`;
@@ -258,6 +356,10 @@ async function sendVerificationEmail(account, origin) {
                    <p><code>${account.verificationToken}</code></p>`;
   }
 
+<<<<<<< HEAD
+=======
+  console.log('Verification email message prepared:', message);
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
   await sendEmail({
     to: account.email,
     subject: "Sign-up Verification API - Verify Email",
@@ -266,6 +368,25 @@ async function sendVerificationEmail(account, origin) {
                ${message}`,
   });
 }
+<<<<<<< HEAD
+=======
+async function sendAlreadyRegisteredEmail(email, origin) {
+  let message;
+  if (origin) {
+    message = `<p>If you don't know your password please visit the <a href="${origin}/account/forgot-password">forgot password</a> page.</p>`;
+  } else {
+    message = `<p>If you don't know your password you can reset it via the <code>/account/forgot-password</code> api route.</p>`;
+  }
+
+  await sendEmail({
+    to: email,
+    subject: "Sign-up Verification API - Email Already Registered",
+    html: `<h4>Email Already Registered</h4>
+               <p>Your email <strong>${email}</strong> is already registered.</p>
+               ${message}`,
+  });
+}
+>>>>>>> 93c970d9f64a2aa1ab841bd67b13c4c0417f867c
 
 async function sendPasswordResetEmail(account, origin) {
   let message;
