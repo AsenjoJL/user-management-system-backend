@@ -1,7 +1,7 @@
 {
-  "name": "node-mysql-signup-verification-api",
+  "name": "node-postgres-signup-verification-api",
   "version": "1.0.0",
-  "description": "Node.js MySQL Boilerplate API with Email Sign Up and Verification",
+  "description": "Node.js PostgreSQL Boilerplate API with Email Sign Up and Verification using Sequelize",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -31,7 +31,6 @@
     "nodemon": "^2.0.22"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=18.0.0"
   }
 }
