@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: user-management-frontend
+    env: static
+    buildCommand: npm install && npm run build -- --configuration production
+    staticPublishPath: dist/angular-signup-verification-boilerplate
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_URL
+        value: https://user-management-api.up.railway.app 
