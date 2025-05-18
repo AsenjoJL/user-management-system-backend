@@ -138,6 +138,11 @@ async function refreshToken(req, res, next) {
   try {
     const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Refresh token not found in cookies' });
+    }
+
     const account = await accountService.refreshToken({ token, ipAddress });
     setTokenCookie(res, account.refreshToken);
     res.json(account);
@@ -275,12 +280,13 @@ async function updateStatus(req, res, next) {
   }
 }
 
+// Utility: Set Refresh Token Cookie
 function setTokenCookie(res, token) {
   const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    expires: new Date(Date.now() + 7*24*60*60*1000),
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     path: '/'
   };
   res.cookie('refreshToken', token, cookieOptions);
