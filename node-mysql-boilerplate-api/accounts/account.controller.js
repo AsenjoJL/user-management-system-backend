@@ -6,6 +6,95 @@ const authorize = require('../_middleware/authorize');
 const Role = require('../_helpers/role');
 const accountService = require('./account.service');
 
+// Validation Schemas (using validateRequest factory)
+const authenticateSchema = validateRequest(
+  Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().required()
+  })
+);
+
+const revokeTokenSchema = validateRequest(
+  Joi.object({
+    token: Joi.string().empty('')
+  })
+);
+
+const registerSchema = validateRequest(
+  Joi.object({
+    title: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+    acceptTerms: Joi.boolean().valid(true).required()
+  })
+);
+
+const verifyEmailSchema = validateRequest(
+  Joi.object({
+    token: Joi.string().required()
+  })
+);
+
+const forgotPasswordSchema = validateRequest(
+  Joi.object({
+    email: Joi.string().email().required()
+  })
+);
+
+const validateResetTokenSchema = validateRequest(
+  Joi.object({
+    token: Joi.string().required()
+  })
+);
+
+const resetPasswordSchema = validateRequest(
+  Joi.object({
+    token: Joi.string().required(),
+    password: Joi.string().min(6).required(),
+    confirmPassword: Joi.string().valid(Joi.ref('password')).required()
+  })
+);
+
+const createSchema = validateRequest(
+  Joi.object({
+    title: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+    role: Joi.string().valid(Role.Admin, Role.User).required()
+  })
+);
+
+const updateStatusSchema = validateRequest(
+  Joi.object({
+    isActive: Joi.boolean().required()
+  })
+);
+
+// Dynamic update schema because role validation depends on user role
+function updateSchema(req, res, next) {
+  const schemaRules = {
+    title: Joi.string().allow(''),
+    firstName: Joi.string().allow(''),
+    lastName: Joi.string().allow(''),
+    email: Joi.string().email().allow(''),
+    password: Joi.string().min(6).allow(''),
+    confirmPassword: Joi.string().valid(Joi.ref('password')).allow('')
+  };
+
+  if (req.user.role === Role.Admin) {
+    schemaRules.role = Joi.string().valid(Role.Admin, Role.User).allow('');
+  }
+
+  const schema = Joi.object(schemaRules).with('password', 'confirmPassword');
+  return validateRequest(schema)(req, res, next);
+}
+
 // Routes
 router.post('/authenticate', authenticateSchema, authenticate);
 router.post('/refresh-token', refreshToken);
@@ -24,15 +113,7 @@ router.put('/:id/status', authorize(Role.Admin), updateStatusSchema, updateStatu
 
 module.exports = router;
 
-// Validation Schemas & Controller Functions
-
-function authenticateSchema(req, res, next) {
-  const schema = Joi.object({
-    email: Joi.string().required(),
-    password: Joi.string().required()
-  });
-  validateRequest(req, next, schema);
-}
+// Controller functions
 
 function authenticate(req, res, next) {
   const { email, password } = req.body;
@@ -48,11 +129,10 @@ function authenticate(req, res, next) {
 function refreshToken(req, res, next) {
   const token = req.cookies.refreshToken;
   const ipAddress = req.ip;
-  
+
   if (!token) {
       return res.status(400).json({ message: 'Refresh token is required' });
   }
-  // Note: IP format validation here is optional depending on your needs
   accountService.refreshToken({ token, ipAddress })
     .then(({ refreshToken, ...account }) => {
       setTokenCookie(res, refreshToken);
@@ -61,20 +141,12 @@ function refreshToken(req, res, next) {
     .catch(next);
 }
 
-function revokeTokenSchema(req, res, next) {
-  const schema = Joi.object({
-    token: Joi.string().empty('')
-  });
-  validateRequest(req, next, schema);
-}
-
 function revokeToken(req, res, next) {
   const token = req.body.token || req.cookies.refreshToken;
   const ipAddress = req.ip;
 
   if (!token) return res.status(400).json({ message: 'Token is required' });
 
-  // users can revoke their own tokens, admins can revoke any tokens
   if (!req.user.ownsToken(token) && req.user.role !== Role.Admin) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -84,30 +156,10 @@ function revokeToken(req, res, next) {
     .catch(next);
 }
 
-function registerSchema(req, res, next) {
-  const schema = Joi.object({
-    title: Joi.string().required(),
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required(),
-    confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-    acceptTerms: Joi.boolean().valid(true).required()
-  });
-  validateRequest(req, next, schema);
-}
-
 function register(req, res, next) {
   accountService.register(req.body, req.get('origin'))
     .then(() => res.json({ message: 'Registration successful, please check your email for verification instructions' }))
     .catch(next);
-}
-
-function verifyEmailSchema(req, res, next) {
-  const schema = Joi.object({
-    token: Joi.string().required()
-  });
-  validateRequest(req, next, schema);
 }
 
 function verifyEmail(req, res, next) {
@@ -116,39 +168,16 @@ function verifyEmail(req, res, next) {
     .catch(next);
 }
 
-function forgotPasswordSchema(req, res, next) {
-  const schema = Joi.object({
-    email: Joi.string().email().required()
-  });
-  validateRequest(req, next, schema);
-}
-
 function forgotPassword(req, res, next) {
   accountService.forgotPassword(req.body, req.get('origin'))
     .then(() => res.json({ message: 'Please check your email for password reset instructions' }))
     .catch(next);
 }
 
-function validateResetTokenSchema(req, res, next) {
-  const schema = Joi.object({
-    token: Joi.string().required()
-  });
-  validateRequest(req, next, schema);
-}
-
 function validateResetToken(req, res, next) {
   accountService.validateResetToken(req.body)
     .then(() => res.json({ message: 'Token is valid' }))
     .catch(next);
-}
-
-function resetPasswordSchema(req, res, next) {
-  const schema = Joi.object({
-    token: Joi.string().required(),
-    password: Joi.string().min(6).required(),
-    confirmPassword: Joi.string().valid(Joi.ref('password')).required()
-  });
-  validateRequest(req, next, schema);
 }
 
 function resetPassword(req, res, next) {
@@ -172,41 +201,10 @@ function getById(req, res, next) {
     .catch(next);
 }
 
-function createSchema(req, res, next) {
-  const schema = Joi.object({
-    title: Joi.string().required(),
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required(),
-    confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-    role: Joi.string().valid(Role.Admin, Role.User).required()
-  });
-  validateRequest(req, next, schema);
-}
-
 function create(req, res, next) {
   accountService.create(req.body)
     .then(account => res.json(account))
     .catch(next);
-}
-
-function updateSchema(req, res, next) {
-  const schemaRules = {
-    title: Joi.string().allow(''),
-    firstName: Joi.string().allow(''),
-    lastName: Joi.string().allow(''),
-    email: Joi.string().email().allow(''),
-    password: Joi.string().min(6).allow(''),
-    confirmPassword: Joi.string().valid(Joi.ref('password')).allow('')
-  };
-
-  if (req.user.role === Role.Admin) {
-    schemaRules.role = Joi.string().valid(Role.Admin, Role.User).allow('');
-  }
-
-  const schema = Joi.object(schemaRules).with('password', 'confirmPassword');
-  validateRequest(req, next, schema);
 }
 
 function update(req, res, next) {
@@ -225,13 +223,6 @@ function _delete(req, res, next) {
   accountService.delete(req.params.id)
     .then(() => res.json({ message: 'Account deleted successfully' }))
     .catch(next);
-}
-
-function updateStatusSchema(req, res, next) {
-  const schema = Joi.object({
-    isActive: Joi.boolean().required()
-  });
-  validateRequest(req, next, schema);
 }
 
 function updateStatus(req, res, next) {
