@@ -1,4 +1,4 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const config = require('../config.json');
 
 // Use DATABASE_URL env var or fallback to config file connection string
@@ -25,36 +25,36 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Initialize models
-db.accounts = require('../accounts/account.model')(sequelize, Sequelize);
-db.refreshTokens = require('../accounts/refresh-token.model')(sequelize, Sequelize);
-db.employees = require('../employees/employee.model')(sequelize, Sequelize);
-db.departments = require('../departments/department.model')(sequelize, Sequelize);
-db.requests = require('../requests/request.model')(sequelize, Sequelize);
-db.requestItems = require('../requests/request-item.model')(sequelize, Sequelize);
-db.workflows = require('../workflows/workflow.model')(sequelize, Sequelize);
+// Initialize models with proper PascalCase names and DataTypes
+db.Account = require('../accounts/account.model')(sequelize, DataTypes);
+db.RefreshToken = require('../accounts/refresh-token.model')(sequelize, DataTypes);
+db.Employee = require('../employees/employee.model')(sequelize, DataTypes);
+db.Department = require('../departments/department.model')(sequelize, DataTypes);
+db.Request = require('../requests/request.model')(sequelize, DataTypes);
+db.RequestItem = require('../requests/request-item.model')(sequelize, DataTypes);
+db.Workflow = require('../workflows/workflow.model')(sequelize, DataTypes);
 
 // Define relationships
-db.accounts.hasMany(db.refreshTokens, { onDelete: 'CASCADE' });
-db.refreshTokens.belongsTo(db.accounts);
+db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
+db.RefreshToken.belongsTo(db.Account);
 
-db.accounts.hasOne(db.employees, { onDelete: 'CASCADE' });
-db.employees.belongsTo(db.accounts);
+db.Account.hasOne(db.Employee, { onDelete: 'CASCADE' });
+db.Employee.belongsTo(db.Account);
 
-db.departments.hasMany(db.employees);
-db.employees.belongsTo(db.departments);
+db.Department.hasMany(db.Employee);
+db.Employee.belongsTo(db.Department);
 
-db.employees.hasMany(db.requests);
-db.requests.belongsTo(db.employees);
+db.Employee.hasMany(db.Request);
+db.Request.belongsTo(db.Employee);
 
-db.requests.hasMany(db.requestItems, { onDelete: 'CASCADE' });
-db.requestItems.belongsTo(db.requests);
+db.Request.hasMany(db.RequestItem, { onDelete: 'CASCADE' });
+db.RequestItem.belongsTo(db.Request);
 
-db.accounts.hasMany(db.requests, { as: 'Approver', foreignKey: 'approverId' });
-db.requests.belongsTo(db.accounts, { as: 'Approver', foreignKey: 'approverId' });
+db.Account.hasMany(db.Request, { as: 'Approver', foreignKey: 'approverId' });
+db.Request.belongsTo(db.Account, { as: 'Approver', foreignKey: 'approverId' });
 
-db.requests.hasMany(db.workflows, { onDelete: 'CASCADE' });
-db.workflows.belongsTo(db.requests);
+db.Request.hasMany(db.Workflow, { onDelete: 'CASCADE' });
+db.Workflow.belongsTo(db.Request);
 
 // Test DB connection
 sequelize.authenticate()
