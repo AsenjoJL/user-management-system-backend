@@ -18,7 +18,7 @@ export class RegisterComponent implements OnInit {
         private router: Router,
         private accountService: AccountService,
         private alertService: AlertService
-    ) {}
+    ) { }
 
     ngOnInit() {
         this.form = this.formBuilder.group({
@@ -34,12 +34,10 @@ export class RegisterComponent implements OnInit {
         });
     }
 
-    // convenience getter for easy access to form fields
     get f() { return this.form.controls; }
 
     onSubmit() {
         this.submitted = true;
-
         this.alertService.clear();
 
         if (this.form.invalid) {
@@ -48,10 +46,10 @@ export class RegisterComponent implements OnInit {
 
         this.loading = true;
 
-        // Prepare payload (remove confirmPassword, acceptTerms)
-        const { confirmPassword, acceptTerms, ...payload } = this.form.value;
+        // Exclude confirmPassword and acceptTerms before sending
+        const { confirmPassword, acceptTerms, ...registerData } = this.form.value;
 
-        this.accountService.register(payload)
+        this.accountService.register(registerData)
             .pipe(first())
             .subscribe({
                 next: () => {
@@ -59,11 +57,7 @@ export class RegisterComponent implements OnInit {
                     this.router.navigate(['../login'], { relativeTo: this.route });
                 },
                 error: error => {
-                    const errMsg = error?.error?.message || error || 'Registration failed';
-                    this.alertService.error(errMsg);
-                    this.loading = false;
-                },
-                complete: () => {
+                    this.alertService.error(error);
                     this.loading = false;
                 }
             });

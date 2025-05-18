@@ -25,5 +25,4 @@ import { ResetPasswordComponent } from './reset-password.component';
         ResetPasswordComponent
     ]
 })
-
 export class AccountModule { }
