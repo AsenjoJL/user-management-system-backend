@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 const config = require('../config.json');
 
-// Log the database URL (without password for security)
+// Use DATABASE_URL env var or fallback to config file connection string
 const dbUrl = process.env.DATABASE_URL || config.connectionString;
 console.log('Database URL:', dbUrl ? dbUrl.replace(/:[^:@]+@/, ':****@') : 'undefined');
 
@@ -14,10 +14,10 @@ const sequelize = new Sequelize(dbUrl, {
     dialectOptions: {
         ssl: {
             require: true,
-            rejectUnauthorized: false
-        }
+            rejectUnauthorized: false,
+        },
     },
-    logging: console.log // Enable logging temporarily for debugging
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
 });
 
 const db = {};
@@ -56,13 +56,19 @@ db.requests.belongsTo(db.accounts, { as: 'Approver', foreignKey: 'approverId' })
 db.requests.hasMany(db.workflows, { onDelete: 'CASCADE' });
 db.workflows.belongsTo(db.requests);
 
-// Sync database
-sequelize.sync({ alter: true })
-    .then(() => {
-        console.log('Database synced successfully');
-    })
-    .catch(err => {
-        console.error('Error syncing database:', err);
-    });
+// Test DB connection
+sequelize.authenticate()
+  .then(() => console.log('Database connection established.'))
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+    process.exit(1); // Exit if no DB connection
+  });
+
+// Sync DB only in development to prevent accidental schema changes in production
+if (process.env.NODE_ENV === 'development') {
+  sequelize.sync({ alter: true })
+    .then(() => console.log('Database synced successfully'))
+    .catch(err => console.error('Error syncing database:', err));
+}
 
 module.exports = db;
