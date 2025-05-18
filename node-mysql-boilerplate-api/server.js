@@ -29,11 +29,7 @@ app.use(limiter);
 
 // Updated CORS configuration to allow both local dev and deployed frontend domains
 app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://user-management-frontend.onrender.com',
-        'https://user-management-system-final-production.up.railway.app'
-    ],
+    origin: ['http://localhost:3000', 'https://user-management-system-backend-x52j.onrender.com'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -42,11 +38,6 @@ app.use(cors({
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
 
 // Add debugging middleware before routes
 app.use((req, res, next) => {
@@ -135,8 +126,5 @@ app.use((err, req, res, next) => {
 });
 
 // start server
-const port = process.env.PORT || 3000;
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode`);
-    console.log(`Server listening on port ${port}`);
-});
+const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
+app.listen(port, () => console.log('Server listening on port ' + port));
