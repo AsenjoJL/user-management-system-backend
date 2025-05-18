@@ -18,4 +18,4 @@ services:
       - key: PORT
         value: 3000
       - key: CORS_ORIGIN
-        value: https://user-management-9vx5.vercel.app 
+        value: https://user-management-system-backend-production.up.railway.app
