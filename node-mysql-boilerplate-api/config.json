@@ -1,5 +1,5 @@
 {
-  "connectionString": "postgresql://postgres:mRRWKpCxvltpPLyjGHqTNREUuQeZbwPP@switchback.proxy.rlwy.net:18439/railway",
+  "connectionString": "postgresql://postgres:WroViWMUGRMypoPmWVvXeVtnYYpnItrh@yamanote.proxy.rlwy.net:10787/railway",
   "database": {
     "host": "switchback.proxy.rlwy.net",
     "port": 18439,
