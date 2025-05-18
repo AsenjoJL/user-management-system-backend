@@ -2,7 +2,7 @@
   "connectionString": "postgresql://postgres:WroViWMUGRMypoPmWVvXeVtnYYpnItrh@yamanote.proxy.rlwy.net:10787/railway",
   "database": {
     "host": "postgres.railway.internal",
-    "port":5432,
+    "port": 5432,
     "user": "postgres",
     "password": "WroViWMUGRMypoPmWVvXeVtnYYpnItrh",
     "database": "railway"

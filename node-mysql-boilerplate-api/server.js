@@ -27,17 +27,36 @@ const limiter = rateLimit({
 // Apply rate limiting to all routes
 app.use(limiter);
 
-// Updated CORS configuration to allow both local dev and deployed frontend domains
+// CORS configuration
+const allowedOrigins = [
+    'http://localhost:4200',
+    'https://user-management-system-final-1s71.onrender.com'
+];
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://user-management-system-backend-x52j.onrender.com'],
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Add debugging middleware before routes
 app.use((req, res, next) => {
@@ -126,5 +145,9 @@ app.use((err, req, res, next) => {
 });
 
 // start server
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
-app.listen(port, () => console.log('Server listening on port ' + port));
+const port = process.env.PORT || 4000;
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode`);
+    console.log(`Server listening on port ${port}`);
+    console.log('Allowed CORS origins:', allowedOrigins);
+});
