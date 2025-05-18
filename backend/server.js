@@ -1,3 +1,4 @@
+require('dotenv').config();
 require('rootpath')();
 const fs = require('fs');
 const express = require('express');
