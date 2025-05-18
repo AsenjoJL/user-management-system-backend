@@ -1,19 +1,19 @@
 {
   "database": {
-    "host": "localhost",
+    "host": "your-production-db-host",
     "port": 3307,
-    "user": "root",
-    "password": "",
-    "database": "node_mysql_signup_verification_apis"
+    "user": "db-user",
+    "password": "db-password",
+    "database": "db-name"
   },
-  "secret": "THIS IS USED TO SIGN AND VERIFY JWT TOKENS, REPLACE IT WITH YOUR OWN SECRET, IT CAN BE ANY STRING",
-  "emailFrom": "info@node-mysql-signup-verification-api.com",
+  "secret": "your-strong-jwt-secret-key-here",
+  "emailFrom": "noreply@yourdomain.com",
   "smtpOptions": {
-    "host": "smtp.ethereal.email",
+    "host": "smtp.sendgrid.net",
     "port": 587,
     "auth": {
-      "user": "theodore.ryan@ethereal.email",
-      "pass": "787b8xP1J9Hff7wwME"
+      "user": "apikey",
+      "pass": "your-sendgrid-api-key"
     }
   }
 }
