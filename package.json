@@ -1,22 +1,8 @@
 {
-  "name": "user-management-system",
+  "name": "user-management-system-backend",
   "version": "1.0.0",
-  "description": "User Management System with Angular Frontend and Node.js Backend",
-  "scripts": {
-    "start": "cd node-mysql-boilerplate-api && npm install && npm start",
-    "install-all": "npm install && cd node-mysql-boilerplate-api && npm install"
-  },
+  "private": true,
   "engines": {
     "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "@angular/common": "^19.2.11",
-    "@angular/compiler": "^19.2.11",
-    "@angular/core": "^19.2.11",
-    "@angular/platform-browser": "^19.2.11",
-    "@angular/platform-browser-dynamic": "^19.2.11",
-    "@angular/router": "^19.2.11",
-    "rxjs": "^7.8.2",
-    "zone.js": "^0.15.0"
   }
 }
