@@ -18,7 +18,7 @@ export class RegisterComponent implements OnInit {
         private router: Router,
         private accountService: AccountService,
         private alertService: AlertService
-    ) { }
+    ) {}
 
     ngOnInit() {
         this.form = this.formBuilder.group({
@@ -39,17 +39,19 @@ export class RegisterComponent implements OnInit {
 
     onSubmit() {
         this.submitted = true;
-    
-        // reset alerts on submit
+
         this.alertService.clear();
-    
-        // stop here if form is invalid
+
         if (this.form.invalid) {
             return;
         }
-    
+
         this.loading = true;
-        this.accountService.register(this.form.value)
+
+        // Prepare payload (remove confirmPassword, acceptTerms)
+        const { confirmPassword, acceptTerms, ...payload } = this.form.value;
+
+        this.accountService.register(payload)
             .pipe(first())
             .subscribe({
                 next: () => {
@@ -57,7 +59,11 @@ export class RegisterComponent implements OnInit {
                     this.router.navigate(['../login'], { relativeTo: this.route });
                 },
                 error: error => {
-                    this.alertService.error(error);
+                    const errMsg = error?.error?.message || error || 'Registration failed';
+                    this.alertService.error(errMsg);
+                    this.loading = false;
+                },
+                complete: () => {
                     this.loading = false;
                 }
             });
