@@ -1,13 +1,12 @@
 {
-  "name": "node-mysql-signup-verification-api",
+  "name": "user-management-backend",
   "version": "1.0.0",
-  "description": "NodeJS and MySQL API for Email Sign Up with Verification, Authentication & Forgot Password",
-  "license": "MIT",
+  "description": "Backend API with PostgreSQL",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "start:dev": "nodemon server.js",
-    "render-start": "cd backend && node server.js",
-    "render-build": "cd backend && npm install"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -16,14 +15,10 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-jwt": "^6.0.0",
-    "joi": "^17.2.1",
-    "jsonwebtoken": "^8.5.1",
-    "mysql": "^2.18.1",
-    "mysql2": "^2.3.3",
-    "nodemailer": "^6.4.11",
-    "passport": "^0.4.1",
-    "rootpath": "^0.1.2",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
     "sequelize": "^6.3.4",
+    "rootpath": "^0.1.2",
     "swagger-ui-express": "^4.6.3",
     "yamljs": "^0.3.0"
   },
