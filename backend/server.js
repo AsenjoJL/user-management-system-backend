@@ -1,3 +1,11 @@
+const fs = require('fs');
+console.log('Current directory:', __dirname);
+console.log('Directory contents:', fs.readdirSync(__dirname));
+console.log('Trying to start server from:', path.join(__dirname, 'server.js'));
+
+
+
+
 require('rootpath')();
 const express = require('express');
 const path = require('path');
