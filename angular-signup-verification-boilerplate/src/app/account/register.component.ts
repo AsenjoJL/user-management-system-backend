@@ -34,22 +34,22 @@ export class RegisterComponent implements OnInit {
         });
     }
 
+    // convenience getter for easy access to form fields
     get f() { return this.form.controls; }
 
     onSubmit() {
         this.submitted = true;
+    
+        // reset alerts on submit
         this.alertService.clear();
-
+    
+        // stop here if form is invalid
         if (this.form.invalid) {
             return;
         }
-
+    
         this.loading = true;
-
-        // Exclude confirmPassword and acceptTerms before sending
-        const { confirmPassword, acceptTerms, ...registerData } = this.form.value;
-
-        this.accountService.register(registerData)
+        this.accountService.register(this.form.value)
             .pipe(first())
             .subscribe({
                 next: () => {
