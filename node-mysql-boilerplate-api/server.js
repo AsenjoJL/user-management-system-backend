@@ -1,5 +1,6 @@
 require('dotenv').config();
 require('rootpath')();
+
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -15,7 +16,6 @@ const limiter = rateLimit({
     message: { message: 'Too many requests, please try again later' },
     standardHeaders: true,
     legacyHeaders: false,
-    // Add handler for rate limit errors
     handler: (req, res) => {
         res.status(429).json({
             message: 'Too many requests, please try again later',
@@ -27,8 +27,9 @@ const limiter = rateLimit({
 // Apply rate limiting to all routes
 app.use(limiter);
 
+// Updated CORS configuration to allow both local dev and deployed frontend domains
 app.use(cors({
-    origin: 'http://localhost:4200', // Angular app URL
+    origin: ['http://localhost:4200', 'https://user-management-system-backend1.onrender.com'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -40,7 +41,6 @@ app.use(cookieParser());
 
 // Add debugging middleware before routes
 app.use((req, res, next) => {
-    // Log all API requests for debugging
     const requestInfo = {
         method: req.method,
         path: req.path,
@@ -90,7 +90,6 @@ app.use((err, req, res, next) => {
             params: err.parameters
         });
         
-        // Return a more informative message for development
         const devMessage = process.env.NODE_ENV === 'development' 
             ? `SQL: ${err.sql || 'N/A'}, Message: ${err.message}` 
             : undefined;
@@ -103,21 +102,16 @@ app.use((err, req, res, next) => {
     
     switch (true) {
         case typeof err === 'string':
-            // custom application error
             const is404 = err.toLowerCase().endsWith('not found');
             const statusCode = is404 ? 404 : 400;
             return res.status(statusCode).json({ message: err });
         case err.name === 'UnauthorizedError':
-            // jwt authentication error
             return res.status(401).json({ message: 'Unauthorized' });
         case err.name === 'SequelizeValidationError':
-            // database validation error
             return res.status(400).json({ message: err.errors.map(e => e.message).join(', ') });
         case err.name === 'SequelizeUniqueConstraintError':
-            // unique constraint error
             return res.status(400).json({ message: 'A record with this name already exists' });
         case err.name === 'RateLimitExceeded':
-            // rate limit error
             return res.status(429).json({ 
                 message: 'Too many requests, please try again later',
                 retryAfter: Math.ceil(err.resetTime / 1000)
