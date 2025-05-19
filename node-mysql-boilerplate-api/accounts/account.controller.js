@@ -16,13 +16,11 @@ router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
 router.get('/', authorize(Role.Admin), getAll);
-router.get('/:id', authorize(), getById);
 router.post('/', authorize(Role.Admin), createSchema, create);
+router.put('/:id/status', authorize(Role.Admin), updateStatusSchema, updateStatus);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
-
-// Add new endpoint for updating account status
-router.put('/:id/status', authorize(Role.Admin), updateStatusSchema, updateStatus);
+router.get('/:id', authorize(), getById); // moved to bottom
 
 module.exports = router;
 
@@ -76,7 +74,7 @@ function revokeToken(req, res, next) {
 
   if (!token) return res.status(400).json({ message: 'Token is required' });
 
-  if (!req.user.ownsToken(token) && req.user.role !== Role.Admin) {
+  if (!req.user?.ownsToken(token) && req.user?.role !== Role.Admin) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
@@ -165,6 +163,10 @@ function getAll(req, res, next) {
 }
 
 function getById(req, res, next) {
+  if (!req.user || typeof req.user.id === 'undefined') {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
   if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -203,7 +205,7 @@ function updateSchema(req, res, next) {
     confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
   };
 
-  if (req.user.role === Role.Admin) {
+  if (req.user?.role === Role.Admin) {
     schemaRules.role = Joi.string().valid(Role.Admin, Role.User).empty('');
   }
 
@@ -212,6 +214,10 @@ function updateSchema(req, res, next) {
 }
 
 function update(req, res, next) {
+  if (!req.user || typeof req.user.id === 'undefined') {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
   if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -222,6 +228,10 @@ function update(req, res, next) {
 }
 
 function _delete(req, res, next) {
+  if (!req.user || typeof req.user.id === 'undefined') {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
   if (Number(req.params.id) !== req.user.id && req.user.role !== Role.Admin) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
