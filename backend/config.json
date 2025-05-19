@@ -1,0 +1,48 @@
+{
+  "development": {
+    "database": {
+      "url": "postgresql://postgres:mRRWKpCxvltpPLyjGHqTNREUuQeZbwPP@switchback.proxy.rlwy.net:18439/railway"
+    },
+    "secret": "STARTTLS_DEV_SECRET",
+    "emailFrom": "christiandhave3@gmail.com",
+    "smtpOptions": {
+      "host": "smtp.gmail.com",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "christiandhave3@gmail.com",
+        "pass": "dkah vtre czrv atme"
+      },
+      "tls": {
+        "rejectUnauthorized": false
+      },
+      "debug": true,
+      "logger": true,
+      "disableFileAccess": true,
+      "disableUrlAccess": true
+    }
+  },
+  "production": {
+    "database": {
+      "url": "postgresql://postgres:mRRWKpCxvltpPLyjGHqTNREUuQeZbwPP@switchback.proxy.rlwy.net:18439/railway"
+    },
+    "secret": "STARTTLS",
+    "emailFrom": "christiandhave3@gmail.com",
+    "smtpOptions": {
+      "host": "smtp.gmail.com",
+      "port": 465,
+      "secure": true,
+      "auth": {
+        "user": "christiandhave3@gmail.com",
+        "pass": "dkah vtre czrv atme"
+      },
+      "tls": {
+        "rejectUnauthorized": false
+      },
+      "debug": true,
+      "logger": true,
+      "disableFileAccess": true,
+      "disableUrlAccess": true
+    }
+  }
+}
