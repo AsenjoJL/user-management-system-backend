@@ -1,5 +1,5 @@
 {
-  "connectionString": "postgresql://postgres:ufcVdasXFTrDfFZFoItfLmoYTIoagYER@postgres.railway.internal:5432/railway",
+  "connectionString": "postgresql://postgres:ufcVdasXFTrDfFZFoItfLmoYTIoagYER@turntable.proxy.rlwy.net:45448/railway",
   "database": {
     "host": "postgres.railway.internal",
     "port": 5432,
