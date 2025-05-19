@@ -31,7 +31,7 @@ app.use(limiter);
 
 // CORS whitelist
 const allowedOrigins = [
-  'http://localhost:4200',
+  'http://localhost:3000',
   'https://user-management-system-final-1s71.onrender.com',
   'https://user-management-system-backend-x52j.onrender.com'  // <-- Your Render front-end
 ];
