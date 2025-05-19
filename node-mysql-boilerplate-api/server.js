@@ -7,10 +7,12 @@ const cors = require('cors');
 const errorHandler = require('./_middleware/error-handler');
 
 
-app.use(cors({
-  origin: 'https://https://user-management-system-backend-x52j.onrender.com',
-  credentials: true
-}));
+// CORS whitelist
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://user-management-system-final-1s71.onrender.com',
+  'https://user-management-system-backend-x52j.onrender.com'  // <-- Your Render front-end
+];
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
