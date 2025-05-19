@@ -1,7 +1,7 @@
 {
   "development": {
     "database": {
-      "url": "postgresql://postgres:mRRWKpCxvltpPLyjGHqTNREUuQeZbwPP@switchback.proxy.rlwy.net:18439/railway"
+      "url": "postgresql://postgres:jAklLiURwvCmOfIhKBRBiChPvqdrQkEI@nozomi.proxy.rlwy.net:39833/railway"
     },
     "secret": "STARTTLS_DEV_SECRET",
     "emailFrom": "christiandhave3@gmail.com",
@@ -24,7 +24,7 @@
   },
   "production": {
     "database": {
-      "url": "postgresql://postgres:mRRWKpCxvltpPLyjGHqTNREUuQeZbwPP@switchback.proxy.rlwy.net:18439/railway"
+      "url": "postgresql://postgres:jAklLiURwvCmOfIhKBRBiChPvqdrQkEI@nozomi.proxy.rlwy.net:39833/railway"
     },
     "secret": "STARTTLS",
     "emailFrom": "christiandhave3@gmail.com",
