@@ -4,6 +4,9 @@ const config = require('../config.json');
 // Use DATABASE_URL env var or fallback to config file connection string
 const dbUrl = process.env.DATABASE_URL || config.connectionString;
 console.log('Database URL:', dbUrl ? dbUrl.replace(/:[^:@]+@/, ':****@') : 'undefined');
+console.log('Database host:', config.database.host);
+console.log('Database port:', config.database.port);
+console.log('Database name:', config.database.database);
 
 if (!dbUrl) {
     throw new Error('DATABASE_URL environment variable is not set');
@@ -12,12 +15,18 @@ if (!dbUrl) {
 const sequelize = new Sequelize(dbUrl, {
     dialect: 'postgres',
     dialectOptions: {
-        ssl: {
+        ssl: process.env.NODE_ENV === 'production' ? {
             require: true,
             rejectUnauthorized: false,
-        },
+        } : false,
     },
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: (msg) => console.log('Database query:', msg),
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    }
 });
 
 const db = {};
@@ -56,19 +65,22 @@ db.requests.belongsTo(db.accounts, { as: 'Approver', foreignKey: 'approverId' })
 db.requests.hasMany(db.workflows, { onDelete: 'CASCADE' });
 db.workflows.belongsTo(db.requests);
 
-// Test DB connection
-sequelize.authenticate()
-  .then(() => console.log('Database connection established.'))
-  .catch(err => {
-    console.error('Unable to connect to the database:', err);
-    process.exit(1); // Exit if no DB connection
-  });
+async function initializeDatabase() {
+    try {
+        await sequelize.authenticate();
+        console.log('Database connection established successfully.');
 
-// Sync DB only in development to prevent accidental schema changes in production
-if (process.env.NODE_ENV === 'development') {
-  sequelize.sync({ alter: true })
-    .then(() => console.log('Database synced successfully'))
-    .catch(err => console.error('Error syncing database:', err));
+        console.log('Syncing database models (force: true) to create tables...');
+        await sequelize.sync({ force: true }); // Drops & recreates all tables — run only once!
+        console.log('Database models synced successfully');
+
+    } catch (err) {
+        console.error('Database initialization error:', err);
+        process.exit(1); // Exit if DB connection fails
+    }
 }
+
+// Initialize the database
+initializeDatabase();
 
 module.exports = db;
