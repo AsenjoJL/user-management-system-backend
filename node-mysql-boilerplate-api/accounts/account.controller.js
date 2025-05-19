@@ -44,9 +44,9 @@ function authenticate(req, res, next) {
     })
     .catch(next);
 }
-
 function refreshToken(req, res, next) {
-  const token = req.cookies.refreshToken;
+  const token = req.body.token || req.cookies.refreshToken;
+
   const ipAddress = req.ip;
 
   if (!token) {
