@@ -1,10 +1,18 @@
 {
+<<<<<<< HEAD
   "connectionString": "postgresql://postgres:WroViWMUGRMypoPmWVvXeVtnYYpnItrh@yamanote.proxy.rlwy.net:10787/railway",
+=======
+  "connectionString": "postgresql://postgres:kNqwOJmkbszUEBnRkngTNdqsXwUTaDyQ@postgres.railway.internal:5432/railway",
+>>>>>>> d02b22c88f6ba20e4b5830a7dac1a84059d5d2f4
   "database": {
     "host": "postgres.railway.internal",
     "port": 5432,
     "user": "postgres",
+<<<<<<< HEAD
     "password": "WroViWMUGRMypoPmWVvXeVtnYYpnItrh",
+=======
+    "password": "kNqwOJmkbszUEBnRkngTNdqsXwUTaDyQ",
+>>>>>>> d02b22c88f6ba20e4b5830a7dac1a84059d5d2f4
     "database": "railway"
   },
   "secret": "jwt_secret_8f7d6e5c4b3a2d1e0f9c8b7a6d5e4f3c2b1a0d9e8f7c6b5a4d3e2f1c0b9a8d7e6f5",
