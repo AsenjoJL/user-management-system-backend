@@ -1,0 +1,51 @@
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Departments</h5>
+            <button *ngIf="account()?.role === 'Admin'" class="btn btn-sm btn-primary" (click)="add()">Add Department</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div *ngIf="loading" class="text-center p-3">
+            <span class="spinner-border spinner-border-sm"></span> Loading departments...
+        </div>
+        
+        <div *ngIf="!loading && error" class="text-center p-3">
+            <div class="alert alert-danger">{{ error }}</div>
+            <button class="btn btn-primary" (click)="retry()">Retry</button>
+        </div>
+        
+        <div *ngIf="!loading && !error && departments.length === 0" class="text-center p-3">
+            <p>No departments found</p>
+            <button *ngIf="account()?.role === 'Admin'" class="btn btn-sm btn-primary" (click)="add()">Create First Department</button>
+        </div>
+        
+        <div *ngIf="!loading && !error && departments.length > 0" class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Employee Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let dept of departments">
+                        <td>{{dept.name}}</td>
+                        <td>{{dept.description}}</td>
+                        <td>{{dept.employeeCount}}</td>
+                        <td>
+                            <div class="d-flex" style="gap: 8px;">
+                                <button class="btn btn-sm btn-primary me-2" (click)="edit(dept.id.toString())">
+                                    <span *ngIf="dept.isDeleting" class="spinner-border spinner-border-sm"></span>
+                                    <span *ngIf="!dept.isDeleting">Edit</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

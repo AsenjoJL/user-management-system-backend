@@ -1,0 +1,146 @@
+<div class="card">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">{{id ? 'EDIT' : 'ADD'}} EMPLOYEE</h4>
+    </div>
+    <div class="card-body">
+        <!-- Keep only the red error message -->
+        <div class="alert alert-danger" *ngIf="errorMessage">
+            <strong>Error:</strong> {{errorMessage}}
+            <button type="button" class="btn-close float-end" (click)="clearError()"></button>
+        </div>
+        
+        <!-- Success message -->
+        <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+            {{successMessage}}
+            <button type="button" class="btn-close" (click)="clearSuccess()"></button>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Employee ID <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="employee.employeeId" 
+                   [disabled]="!!id || !isAdmin()" 
+                   [title]="!isAdmin() ? 'Only admins can change employee IDs' : ''"
+                   [ngClass]="{'is-invalid': submitted && !employee.employeeId}">
+            <small class="form-text text-muted" *ngIf="!id">
+                Automatically generated. Admin users can modify if needed.
+            </small>
+            <div class="invalid-feedback" *ngIf="submitted && !employee.employeeId">Employee ID is required</div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label d-block">Account <span class="text-danger">*</span></label>
+            <select class="form-select form-control" [(ngModel)]="employee.userId"
+                    [ngClass]="{'is-invalid': submitted && !employee.userId}">
+                <option [ngValue]="null">-- Select Account --</option>
+                <option *ngFor="let user of availableUsers" [value]="user.id">
+                    {{user.email}} ({{user.role}})
+                    <ng-container *ngIf="user.isActive === false"> [INACTIVE]</ng-container>
+                </option>
+            </select>
+            <small class="form-text text-muted">
+                Only active and unassigned accounts are available for selection.
+            </small>
+            <div class="invalid-feedback" *ngIf="submitted && !employee.userId">Account is required</div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Position <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="employee.position" placeholder="Enter position"
+                   [ngClass]="{'is-invalid': submitted && !employee.position}">
+            <div class="invalid-feedback" *ngIf="submitted && !employee.position">Position is required</div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label d-block">Department <span class="text-danger">*</span></label>
+            <select class="form-select form-control" [(ngModel)]="employee.departmentId"
+                    [ngClass]="{'is-invalid': submitted && !employee.departmentId}">
+                <option [ngValue]="null">-- Select Department --</option>
+                <option *ngFor="let dept of departments" [value]="dept.id">{{dept.name}}</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && !employee.departmentId">Department is required</div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Hire Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" [(ngModel)]="employee.hireDate"
+                   [ngClass]="{'is-invalid': submitted && !employee.hireDate}">
+            <div class="invalid-feedback" *ngIf="submitted && !employee.hireDate">Hire date is required</div>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label d-block">Status <span class="text-danger">*</span></label>
+            <select class="form-select form-control" [(ngModel)]="employee.status"
+                   [ngClass]="{'is-invalid': submitted && !employee.status}">
+                <option [ngValue]="null">-- Select Status --</option>
+                <option>Active</option>
+                <option>Inactive</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="submitted && !employee.status">Status is required</div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <button class="btn btn-primary" (click)="save()">Save</button>
+            <span style="display: inline-block; width: 10px;"></span>
+            <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-select, .form-control {
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #ced4da;
+        background-color: #fff;
+        height: 38px;
+        width: 100%;
+    }
+    
+    .form-select {
+        appearance: auto;
+        -webkit-appearance: auto;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+    
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #dc3545;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .text-danger {
+        color: #dc3545;
+    }
+    
+    .btn-close {
+        background: transparent;
+        border: 0;
+        font-size: 1.5rem;
+        padding: 0.25rem;
+        cursor: pointer;
+        opacity: 0.5;
+    }
+    
+    .btn-close:hover {
+        opacity: 1;
+    }
+    
+    .float-end {
+        float: right;
+    }
+</style>

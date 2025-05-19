@@ -1,0 +1,57 @@
+<div class="card">
+    <div class="card-header">Transfer Employee</div>
+    <div class="card-body">
+        <div class="alert alert-danger" *ngIf="errorMessage">{{errorMessage}}</div>
+        
+        <!-- Show a warning if the user selects the same department -->
+        <div class="alert alert-warning" *ngIf="newDepartmentId === employee?.departmentId && newDepartmentId !== null">
+            You must select a different department than the current one.
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Employee</label>
+            <input type="text" class="form-control" [value]="employee?.employeeId" disabled>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Current Department</label>
+            <input type="text" class="form-control" [value]="currentDepartmentName" disabled>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label d-block">New Department</label>
+            <select class="form-select w-100" [(ngModel)]="newDepartmentId">
+                <option *ngFor="let dept of departments" [value]="dept.id" 
+                        [disabled]="dept.id === employee?.departmentId">
+                    {{dept.name}} {{dept.id === employee?.departmentId ? '(Current)' : ''}}
+                </option>
+            </select>
+        </div>
+        
+        <div class="text-center mt-4">
+            <button class="btn btn-primary" (click)="transfer()" 
+                   [disabled]="newDepartmentId === employee?.departmentId || !newDepartmentId">Transfer</button>
+            <span style="display: inline-block; width: 10px;"></span>
+            <button class="btn btn-secondary" routerLink="/admin/employees">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .form-select {
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #ced4da;
+        background-color: #fff;
+        height: 38px;
+        width: 100%;
+        appearance: auto;
+        -webkit-appearance: auto;
+    }
+</style>

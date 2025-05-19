@@ -1,0 +1,77 @@
+<div class="card">
+    <h5 class="card-header">{{ isAddMode ? 'Add Department' : 'Edit Department' }}</h5>
+    <div class="card-body">
+        <div *ngIf="loading" class="text-center">
+            <span class="spinner-border spinner-border-sm"></span> Loading...
+        </div>
+        
+        <div *ngIf="error" class="alert alert-danger">
+            {{ error }}
+            <button type="button" class="btn-close float-end" (click)="error = ''"></button>
+        </div>
+        
+        <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" formControlName="name" class="form-control" 
+                       [ngClass]="{ 'is-invalid': submitted && f.name.errors }" />
+                <div *ngIf="submitted && f.name.errors" class="invalid-feedback">
+                    <div *ngIf="f.name.errors.required">Name is required</div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <input type="text" formControlName="description" class="form-control" 
+                       [ngClass]="{ 'is-invalid': submitted && f.description.errors }" />
+                <div *ngIf="submitted && f.description.errors" class="invalid-feedback">
+                    <div *ngIf="f.description.errors.required">Description is required</div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button type="submit" [disabled]="submitting" class="btn btn-primary">
+                    <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+                    Save
+                </button>
+                <span style="display: inline-block; width: 10px;"></span>
+                <button type="button" [disabled]="submitting" class="btn btn-secondary" routerLink="/admin/departments">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 80%;
+        color: #dc3545;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .text-danger {
+        color: #dc3545;
+    }
+    
+    .btn-close {
+        background: transparent;
+        border: 0;
+        font-size: 1.5rem;
+        padding: 0.25rem;
+        cursor: pointer;
+        opacity: 0.5;
+    }
+    
+    .btn-close:hover {
+        opacity: 1;
+    }
+    
+    .float-end {
+        float: right;
+    }
+</style>

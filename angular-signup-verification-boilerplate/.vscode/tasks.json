@@ -1,0 +1,67 @@
+{
+  // For more information, visit: https://go.microsoft.com/fwlink/?LinkId=733558
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "start",
+      "path": "angular-signup-verification-boilerplate/",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "(.*?)"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation complete"
+          }
+        }
+      },
+      "label": "npm: start - frontend"
+    },
+    {
+      "type": "npm",
+      "script": "start",
+      "path": "node-mysql-boilerplate-api/",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "nodejs",
+        "pattern": {
+          "regexp": "."
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Server listening on port"
+        }
+      },
+      "label": "npm: start - backend"
+    },
+    {
+      "label": "Run Full Stack",
+      "dependsOn": ["npm: start - frontend", "npm: start - backend"],
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "test",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "(.*?)"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation complete"
+          }
+        }
+      }
+    }
+  ]
+}
