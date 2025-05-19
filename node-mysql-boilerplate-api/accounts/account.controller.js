@@ -24,10 +24,9 @@ router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
 router.put('/:id/status', authorize(Role.Admin), updateStatusSchema, updateStatus);
 
-
 module.exports = router;
 
-// Validation Schemas
+// Validation Schemas (unchanged)
 function authenticateSchema(req, res, next) {
   const schema = Joi.object({
     email: Joi.string().email().required(),
@@ -139,17 +138,50 @@ async function authenticate(req, res, next) {
 
 async function refreshToken(req, res, next) {
   try {
-    const token = req.cookies.refreshToken;
+    const token = req.cookies?.refreshToken;
     const ipAddress = req.ip;
 
     if (!token) {
-      return res.status(400).json({ message: 'Refresh token not found in cookies' });
+      return res.status(400).json({ 
+        message: 'Refresh token is required',
+        code: 'REFRESH_TOKEN_REQUIRED',
+        solution: 'Please authenticate first to get a refresh token'
+      });
     }
 
+    console.log(`Refresh token request from IP: ${ipAddress}`);
     const account = await accountService.refreshToken({ token, ipAddress });
+    
+    if (!account) {
+      return res.status(401).json({
+        message: 'Invalid refresh token',
+        code: 'INVALID_REFRESH_TOKEN'
+      });
+    }
+
     setTokenCookie(res, account.refreshToken);
-    res.json(account);
+    res.json({
+      ...account,
+      message: 'Token refreshed successfully'
+    });
   } catch (error) {
+    console.error('Refresh token error:', error);
+    res.clearCookie('refreshToken');
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        message: 'Refresh token expired',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        message: 'Invalid token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+    
     next(error);
   }
 }
@@ -289,8 +321,9 @@ function setTokenCookie(res, token) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    path: '/'
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/',
+    domain: process.env.COOKIE_DOMAIN || undefined
   };
   res.cookie('refreshToken', token, cookieOptions);
 }
