@@ -8,7 +8,7 @@ const errorHandler = require('./_middleware/error-handler');
 
 
 app.use(cors({
-  origin: 'https://user-management-it71.onrender.com',
+  origin: 'https://https://user-management-system-backend-x52j.onrender.com',
   credentials: true
 }));
 
