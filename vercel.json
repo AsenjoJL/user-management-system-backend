@@ -1,7 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "frontend/dist/angular-10-17-updated-boilerplate",
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build -- --configuration=production",
+        "outputDirectory": "dist/angular-10-17-updated-boilerplate"
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|json|svg|woff|woff2|ttf|eot))",
