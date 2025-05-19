@@ -6,7 +6,7 @@ const authorize = require('../_middleware/authorize');
 const Role = require('../_helpers/role');
 const accountService = require('./account.service');
 
-// Routes
+// routes
 router.post('/authenticate', authenticateSchema, authenticate);
 router.post('/refresh-token', refreshToken);
 router.post('/revoke-token', authorize(), revokeTokenSchema, revokeToken);
@@ -20,15 +20,23 @@ router.post('/', authorize(Role.Admin), createSchema, create);
 router.put('/:id/status', authorize(Role.Admin), updateStatusSchema, updateStatus);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
-router.get('/:id', authorize(), getById);
+router.get('/:id', authorize(), getById); // moved to bottom
 
 module.exports = router;
 
-// Controller functions
+// Schema validation and handler functions
+
+function authenticateSchema(req, res, next) {
+  const schema = Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().required()
+  });
+  validateRequest(req, next, schema);
+}
+
 function authenticate(req, res, next) {
   const { email, password } = req.body;
-  const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  
+  const ipAddress = req.ip;
   accountService.authenticate({ email, password, ipAddress })
     .then(({ refreshToken, ...account }) => {
       setTokenCookie(res, refreshToken);
@@ -38,14 +46,11 @@ function authenticate(req, res, next) {
 }
 
 function refreshToken(req, res, next) {
-  const token = req.body.refreshToken || req.cookies.refreshToken;
-  const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  const token = req.cookies.refreshToken;
+  const ipAddress = req.ip;
 
   if (!token) {
-    return res.status(400).json({ 
-      message: 'Refresh token is required',
-      code: 'REFRESH_TOKEN_REQUIRED'
-    });
+    return res.status(400).json({ message: 'Refresh token is required' });
   }
 
   accountService.refreshToken({ token, ipAddress })
@@ -56,21 +61,45 @@ function refreshToken(req, res, next) {
     .catch(next);
 }
 
+function revokeTokenSchema(req, res, next) {
+  const schema = Joi.object({
+    token: Joi.string().empty('')
+  });
+  validateRequest(req, next, schema);
+}
+
+function revokeToken(req, res, next) {
+  const token = req.body.token || req.cookies.refreshToken;
+  const ipAddress = req.ip;
+
+  if (!token) return res.status(400).json({ message: 'Token is required' });
+
+  if (!req.user?.ownsToken(token) && req.user?.role !== Role.Admin) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  accountService.revokeToken({ token, ipAddress })
+    .then(() => res.json({ message: 'Token revoked' }))
+    .catch(next);
+}
+
+function registerSchema(req, res, next) {
+  const schema = Joi.object({
+    title: Joi.string().required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+    acceptTerms: Joi.boolean().valid(true).required()
+  });
+  validateRequest(req, next, schema);
+}
+
 function register(req, res, next) {
   accountService.register(req.body, req.get('origin'))
-    .then(() => res.json({ 
-      message: 'Registration successful. Please check your email for verification instructions.',
-      success: true 
-    }))
-    .catch(error => {
-      if (error === 'Email is already registered') {
-        return res.status(409).json({
-          message: error,
-          code: 'EMAIL_EXISTS'
-        });
-      }
-      next(error);
-    });
+    .then(() => res.json({ message: 'Registration successful, please check your email for verification instructions' }))
+    .catch(next);
 }
 
 function verifyEmailSchema(req, res, next) {
@@ -231,14 +260,11 @@ function updateStatus(req, res, next) {
     .catch(next);
 }
 
-// Helper function to set refresh token cookie
+// Helper to set the token cookie
 function setTokenCookie(res, token) {
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/api/accounts'
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   };
   res.cookie('refreshToken', token, cookieOptions);
 }
