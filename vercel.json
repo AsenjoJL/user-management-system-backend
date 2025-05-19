@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
-  "outputDirectory": "dist/angular-10-17-updated-boilerplate",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist/angular-10-17-updated-boilerplate",
   "routes": [
     {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|json|svg|woff|woff2|ttf|eot))",
