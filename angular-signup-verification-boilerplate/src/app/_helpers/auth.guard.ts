@@ -12,19 +12,30 @@ export class AuthGuard {
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
         const account = this.accountService.accountValue;
+        
         if (account) {
-            // check if route is restricted by role
-            if (route.data.roles && !route.data.roles.includes(account.role)) {
-                // role not authorized so redirect to home page
+            // Check if token is expired
+            if (this.accountService.isTokenExpired(account.jwtToken)) {
+                this.accountService.logout();
+                return this.redirectToLogin(state);
+            }
+
+            // Check route role restrictions
+            if (route.data?.roles && !route.data.roles.includes(account.role)) {
                 this.router.navigate(['/']);
                 return false;
             }
-            // authorized so return true
+
             return true;
         }
 
-        // not logged in so redirect to login page with the return url
-        this.router.navigate(['/account/login'], { queryParams: { returnUrl: state.url }});
+        return this.redirectToLogin(state);
+    }
+
+    private redirectToLogin(state: RouterStateSnapshot): boolean {
+        this.router.navigate(['/account/login'], { 
+            queryParams: { returnUrl: state.url } 
+        });
         return false;
     }
 }
