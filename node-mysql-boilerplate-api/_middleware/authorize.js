@@ -5,54 +5,56 @@ const db = require('_helpers/db');
 module.exports = authorize;
 
 function authorize(roles = []) {
+    // Convert string role to array
     if (typeof roles === 'string') {
         roles = [roles];
     }
 
     return [
-        // authenticate JWT token and attach user to request object (req.user)
-        jwt({ 
-            secret, 
+        // JWT authentication middleware
+        jwt({
+            secret,
             algorithms: ['HS256'],
-            credentialsRequired: roles.length > 0, // Only require credentials if roles are specified
-            getToken: function fromHeaderOrQuerystring(req) {
+            credentialsRequired: roles.length > 0, // Only require credentials if roles specified
+            getToken: function fromHeaderOrCookie(req) {
+                // Check authorization header first
                 if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
                     return req.headers.authorization.split(' ')[1];
-                } else if (req.query && req.query.token) {
-                    return req.query.token;
+                }
+                // Fall back to cookie
+                if (req.cookies && req.cookies.refreshToken) {
+                    return req.cookies.refreshToken;
                 }
                 return null;
             }
         }),
 
-        // authorize based on user role
+        // Role authorization middleware
         async (req, res, next) => {
-            // Skip authorization if no roles are required
+            // Skip role check if no roles required
             if (roles.length === 0) return next();
 
             try {
-                console.log('Authorization check for user:', req.user?.id);
-                
-                if (!req.user) {
-                    return res.status(401).json({ 
-                        message: 'Unauthorized - Token required',
-                        code: 'TOKEN_REQUIRED'
+                // Verify user exists
+                if (!req.user?.id) {
+                    return res.status(401).json({
+                        message: 'Unauthorized - Invalid token',
+                        code: 'INVALID_TOKEN'
                     });
                 }
 
+                // Get account from database
                 const account = await db.Account.findByPk(req.user.id);
-                
                 if (!account) {
-                    console.log('Account not found for user:', req.user.id);
-                    return res.status(401).json({ 
+                    return res.status(401).json({
                         message: 'Unauthorized - Account not found',
                         code: 'ACCOUNT_NOT_FOUND'
                     });
                 }
 
-                if (!roles.includes(account.role)) {
-                    console.log('Role not authorized. User role:', account.role, 'Required roles:', roles);
-                    return res.status(403).json({ 
+                // Check role permissions
+                if (roles.length && !roles.includes(account.role)) {
+                    return res.status(403).json({
                         message: 'Forbidden - Insufficient permissions',
                         code: 'INSUFFICIENT_PERMISSIONS',
                         requiredRoles: roles,
@@ -60,20 +62,15 @@ function authorize(roles = []) {
                     });
                 }
 
-                // authentication and authorization successful
+                // Attach additional user info to request
                 req.user.role = account.role;
                 const refreshTokens = await account.getRefreshTokens();
                 req.user.ownsToken = token => !!refreshTokens.find(x => x.token === token);
                 
-                console.log('Authorization successful for user:', req.user.id, 'with role:', account.role);
                 next();
             } catch (error) {
                 console.error('Authorization error:', error);
-                return res.status(500).json({ 
-                    message: 'Internal server error during authorization',
-                    code: 'AUTH_ERROR',
-                    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-                });
+                next(error);
             }
         }
     ];

@@ -6,17 +6,15 @@ const authorize = require('../_middleware/authorize');
 const Role = require('../_helpers/role');
 const accountService = require('./account.service');
 
-// Public routes (no authorization needed)
+// Routes
 router.post('/authenticate', authenticateSchema, authenticate);
 router.post('/refresh-token', refreshToken);
+router.post('/revoke-token', authorize(), revokeTokenSchema, revokeToken);
 router.post('/register', registerSchema, register);
 router.post('/verify-email', verifyEmailSchema, verifyEmail);
 router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
-
-// Protected routes (require authorization)
-router.post('/revoke-token', authorize(), revokeTokenSchema, revokeToken);
 router.get('/', authorize(Role.Admin), getAll);
 router.get('/:id', authorize(), getById);
 router.post('/', authorize(Role.Admin), createSchema, create);
@@ -26,7 +24,7 @@ router.put('/:id/status', authorize(Role.Admin), updateStatusSchema, updateStatu
 
 module.exports = router;
 
-// Validation Schemas (unchanged)
+// Validation Schemas
 function authenticateSchema(req, res, next) {
   const schema = Joi.object({
     email: Joi.string().email().required(),
@@ -138,50 +136,17 @@ async function authenticate(req, res, next) {
 
 async function refreshToken(req, res, next) {
   try {
-    const token = req.cookies?.refreshToken;
+    const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
 
     if (!token) {
-      return res.status(400).json({ 
-        message: 'Refresh token is required',
-        code: 'REFRESH_TOKEN_REQUIRED',
-        solution: 'Please authenticate first to get a refresh token'
-      });
+      return res.status(400).json({ message: 'Refresh token not found in cookies' });
     }
 
-    console.log(`Refresh token request from IP: ${ipAddress}`);
     const account = await accountService.refreshToken({ token, ipAddress });
-    
-    if (!account) {
-      return res.status(401).json({
-        message: 'Invalid refresh token',
-        code: 'INVALID_REFRESH_TOKEN'
-      });
-    }
-
     setTokenCookie(res, account.refreshToken);
-    res.json({
-      ...account,
-      message: 'Token refreshed successfully'
-    });
+    res.json(account);
   } catch (error) {
-    console.error('Refresh token error:', error);
-    res.clearCookie('refreshToken');
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        message: 'Refresh token expired',
-        code: 'TOKEN_EXPIRED'
-      });
-    }
-    
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        message: 'Invalid token',
-        code: 'INVALID_TOKEN'
-      });
-    }
-    
     next(error);
   }
 }
@@ -321,9 +286,8 @@ function setTokenCookie(res, token) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/',
-    domain: process.env.COOKIE_DOMAIN || undefined
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    path: '/'
   };
   res.cookie('refreshToken', token, cookieOptions);
 }
