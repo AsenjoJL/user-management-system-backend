@@ -16,7 +16,6 @@ const routes: Routes = [
         children: [
             { path: '', component: OverViewComponent },
             { path: 'accounts', loadChildren: accountsModule },
-            { path: 'analytics', loadChildren: analyticsModule },
             { path: 'employees', loadChildren: employeesModule },
             { path: 'departments', loadChildren: departmentsModule },
             { path: 'requests', loadChildren: requestsModule }
