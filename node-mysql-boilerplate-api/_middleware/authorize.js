@@ -14,7 +14,7 @@ function authorize(roles = []) {
         jwt({ 
             secret, 
             algorithms: ['HS256'],
-            credentialsRequired: true,
+            credentialsRequired: roles.length > 0, // Only require credentials if roles are specified
             getToken: function fromHeaderOrQuerystring(req) {
                 if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
                     return req.headers.authorization.split(' ')[1];
@@ -27,9 +27,18 @@ function authorize(roles = []) {
 
         // authorize based on user role
         async (req, res, next) => {
+            // Skip authorization if no roles are required
+            if (roles.length === 0) return next();
+
             try {
-                console.log('Authorization check for user:', req.user.id);
-                console.log('Required roles:', roles);
+                console.log('Authorization check for user:', req.user?.id);
+                
+                if (!req.user) {
+                    return res.status(401).json({ 
+                        message: 'Unauthorized - Token required',
+                        code: 'TOKEN_REQUIRED'
+                    });
+                }
 
                 const account = await db.Account.findByPk(req.user.id);
                 
@@ -41,7 +50,7 @@ function authorize(roles = []) {
                     });
                 }
 
-                if (roles.length && !roles.includes(account.role)) {
+                if (!roles.includes(account.role)) {
                     console.log('Role not authorized. User role:', account.role, 'Required roles:', roles);
                     return res.status(403).json({ 
                         message: 'Forbidden - Insufficient permissions',
