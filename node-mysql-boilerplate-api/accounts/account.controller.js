@@ -46,12 +46,14 @@ function authenticate(req, res, next) {
 }
 function refreshToken(req, res, next) {
   const token = req.body.token || req.cookies.refreshToken;
-
   const ipAddress = req.ip;
 
   if (!token) {
+    console.warn('Refresh token missing');
     return res.status(400).json({ message: 'Refresh token is required' });
   }
+
+  console.log('Using refresh token:', token);
 
   accountService.refreshToken({ token, ipAddress })
     .then(({ refreshToken, ...account }) => {
@@ -60,6 +62,7 @@ function refreshToken(req, res, next) {
     })
     .catch(next);
 }
+
 
 function revokeTokenSchema(req, res, next) {
   const schema = Joi.object({
